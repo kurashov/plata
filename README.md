@@ -8,7 +8,7 @@
 
 ## Стек
 
-- Go 1.22
+- Go 1.24+
 - `net/http` + [chi](https://github.com/go-chi/chi) — HTTP-роутинг
 - PostgreSQL + [pgx](https://github.com/jackc/pgx) — БД
 - [exchangeratesapi.io](https://exchangeratesapi.io/) — источник котировок
