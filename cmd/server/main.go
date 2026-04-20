@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	pgxdecimal "github.com/jackc/pgx-shopspring-decimal"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/kurashov/plata/internal/config"
@@ -31,8 +33,22 @@ func main() {
 	log.Printf("db connected")
 }
 
+// newDBPool creates a pgx connection pool, registers the shopspring/decimal
+// type on each new connection, and verifies the database is reachable.
 func newDBPool(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
-	pool, err := pgxpool.New(ctx, dsn)
+	poolCfg, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	// Register decimal.Decimal / decimal.NullDecimal codecs with every new
+	// connection so the repo can read/write NUMERIC columns directly.
+	poolCfg.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		pgxdecimal.Register(conn.TypeMap())
+		return nil
+	}
+
+	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
 		return nil, err
 	}
